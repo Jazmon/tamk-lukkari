@@ -35,8 +35,6 @@ module.exports = {
     'react-native'
   ],
   rules: {
-    'flow-vars/define-flow-type': 1,
-    'flow-vars/use-flow-type': 1,
     'react-native/no-unused-styles': 2,
     'react-native/split-platform-components': 2,
     'jsx-quotes': ['error', 'prefer-double'],
