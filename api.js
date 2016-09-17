@@ -29,6 +29,7 @@ export const fetchLessons = ({
   type: TimeType;
 }): Promise<*> =>
   new Promise((resolve, reject) => {
+    console.log('type', type);
     fetch(apiUrl, {
       method: 'POST',
       headers: {

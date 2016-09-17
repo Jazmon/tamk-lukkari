@@ -103,9 +103,15 @@ const DataSource = new ListView.DataSource({
   sectionHeaderHasChanged: (s1, s2) => s1 !== s2,
 });
 
+const TodayDataSource = new ListView.DataSource({
+  rowHasChanged: (r1, r2) => r1.id !== r2.id,
+  sectionHeaderHasChanged: (s1, s2) => s1 !== s2,
+});
+
 class App extends Component<*, Props, State> {
   props: Props;
   dataSource: Object;
+  todayDataSource: Object;
 
   renderRow: Function;
   renderSectionHeader: Function;
@@ -115,9 +121,10 @@ class App extends Component<*, Props, State> {
 
     this.state = {
       // lessons: [],
-      loading: false,
+      loading: true,
     };
     this.dataSource = DataSource.cloneWithRowsAndSections({});
+    this.todayDataSource = TodayDataSource.cloneWithRowsAndSections({});
 
     this.renderRow = this.renderRow.bind(this);
     this.renderSectionHeader = this.renderSectionHeader.bind(this);
@@ -126,9 +133,34 @@ class App extends Component<*, Props, State> {
   state: State;
 
   componentDidMount() {
-    this.setState({ loading: true });
+    fetchLessons({ studentGroup: ['14TIKOOT'], type: 'today' })
+      .then((data) => {
+        console.log('foo');
+        console.log(data);
+        if (!data.reservations || data.reservations.length === 0) {
+          console.log('bar');
+          this.setState({ loading: false });
+          return;
+        }
+        console.log('baz');
+        const lessons: Array<Lesson> = data.reservations
+          .map(reservation => parseReservation(reservation))
+          .sort((a, b) => moment(a.startDate).isBefore(b.startDate));
+        // this.setState({ lessons });
+        this.todayDataSource = TodayDataSource.cloneWithRowsAndSections(lessonsToMap(lessons));
+        this.setState({ loading: false });
+      })
+      .catch(error => console.error(error) || this.setState({ loading: true }));
     fetchLessons({ studentGroup: ['14TIKOOT'], type: 'week' })
       .then((data) => {
+        console.log('foo');
+        console.log(data);
+        if (!data.reservations || data.reservations.length === 0) {
+          console.log('bar');
+          this.setState({ loading: false });
+          return;
+        }
+        console.log('baz');
         const lessons: Array<Lesson> = data.reservations
           .map(reservation => parseReservation(reservation))
           .sort((a, b) => moment(a.startDate).isBefore(b.startDate));
@@ -175,17 +207,17 @@ class App extends Component<*, Props, State> {
         <Container theme={Theme}>
 
           <Header>
-            <Button transparent>
+            {/* <Button transparent>
               <Icon name="md-menu" />
-            </Button>
-            <Title>Your Lessons</Title>
+            </Button> */}
+            <Title>TAMK lukkari</Title>
           </Header>
           <Content>
             <Tabs>
               <Content tabLabel="Today">
                 <ListView
                   renderRow={this.renderRow}
-                  dataSource={this.dataSource}
+                  dataSource={this.todayDataSource}
                   initialListSize={0}
                   pageSize={8}
                   scrollRenderAheadDistance={1000}
@@ -195,6 +227,14 @@ class App extends Component<*, Props, State> {
                   renderSectionHeader={this.renderSectionHeader}
                   style={styles.listView}
                 />
+                {!this.state.loading && this.todayDataSource.getRowCount() === 0 &&
+                  <View style={styles.noLessonsContainer}>
+                    <NBText>No lessons today...</NBText>
+                  </View>
+                }
+                {this.state.loading &&
+                  <Spinner />
+                }
               </Content>
               <Content tabLabel="Week">
                 <ListView
@@ -209,6 +249,11 @@ class App extends Component<*, Props, State> {
                   renderSectionHeader={this.renderSectionHeader}
                   style={styles.listView}
                 />
+                {!this.state.loading && this.dataSource.getRowCount() === 0 &&
+                  <View style={styles.noLessonsContainer}>
+                    <NBText>No lessons this week...</NBText>
+                  </View>
+                }
                 {this.state.loading &&
                   <Spinner />
                 }
@@ -264,6 +309,11 @@ const styles = StyleSheet.create({
   },
   timeTextDivider: {
     color: 'rgba(0, 0, 0, 0.54)',
+  },
+  noLessonsContainer: {
+    marginHorizontal: 8,
+    marginTop: 16,
+    alignItems: 'center',
   },
 });
 
