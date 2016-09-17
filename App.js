@@ -43,7 +43,10 @@ type Lesson = {
   id: number;
   startDate: string;
   endDate: string;
-  course: string;
+  course: {
+    id: string;
+    name: string;
+  };
   studentGroups: Array<string>;
   // teacher: string;
   room: string;
@@ -51,10 +54,14 @@ type Lesson = {
 
 function parseReservation(reservation: Reservation): Lesson {
   const roomResource: ?Object = reservation.resources.find(res => res.type === 'room');
-  const room = roomResource ? roomResource.code : '';
+  const room: string = roomResource ? roomResource.code : '';
+  const splitCourse: Array<string> = reservation.subject.split(' ');
   const lesson: Lesson = {
     id: reservation.id,
-    course: reservation.subject,
+    course: {
+      name: splitCourse.slice(0, splitCourse.length - 2).join(' '),
+      id: splitCourse[splitCourse.length - 1],
+    },
     startDate: reservation.startDate,
     endDate: reservation.endDate,
     room,
@@ -66,10 +73,6 @@ function parseReservation(reservation: Reservation): Lesson {
 }
 
 type Props = {
-  navigator: Object;
-  route: Object;
-  relay: Object;
-  loading: boolean;
 };
 
 type State = {
@@ -94,8 +97,8 @@ class App extends Component<*, Props, State> {
     fetchLessons({ studentGroup: ['14TIKOOT'] })
       .then((data) => {
         const lessons: Array<Lesson> = data.reservations
-          .map(reservation => parseReservation(reservation));
-        this.setState({ lessons });
+          .map(reservation => parseReservation(reservation))
+          .sort((a, b) => moment(a.startDate).isBefore(b.startDate));
       })
       .catch(error => console.error(error));
   }
@@ -120,9 +123,10 @@ class App extends Component<*, Props, State> {
                       alignItems: 'center',
                     }}
                   >
-                    <Text note>{moment(lesson.startDate).format('HH:mm')}</Text>
-                    <Text note>-</Text>
-                    <Text note>{moment(lesson.endDate).format('HH:mm')}</Text>
+                    <Text>{moment(listData.startDate).format('DD.MM.')}</Text>
+                    <Text>{moment(listData.startDate).format('HH:mm')}</Text>
+                    <Text>-</Text>
+                    <Text>{moment(listData.endDate).format('HH:mm')}</Text>
                   </View>
                   <View
                     style={{
@@ -131,8 +135,8 @@ class App extends Component<*, Props, State> {
                       justifyContent: 'center',
                     }}
                   >
-                    <Text>{lesson.course}</Text>
-                    <Text>{lesson.room}</Text>
+                    <Text>{listData.course.name}</Text>
+                    <Text>{listData.room}</Text>
                   </View>
                 </View>
               </ListItem>
