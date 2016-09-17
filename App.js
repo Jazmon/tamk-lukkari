@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import {
   StyleSheet,
   View,
+  StatusBar,
   ListView,
   Text,
 } from 'react-native';
@@ -14,6 +15,8 @@ import {
   List,
   ListItem,
   Text as NBText,
+  Tabs,
+  Spinner,
   Icon,
   Button,
 } from 'native-base';
@@ -21,6 +24,7 @@ import moment from 'moment';
 
 import 'moment/locale/fi';
 
+import Theme from './Theme';
 import { fetchLessons } from './api';
 
 type Resource = {
@@ -81,7 +85,7 @@ function lessonsToMap(lessons: Array<Lesson>): Object {
       map[key] = [];
     }
     map[key].push(lesson);
-    return key;
+    return null;
   });
   return map;
 }
@@ -91,6 +95,7 @@ type Props = {
 
 type State = {
   // lessons: Array<Lesson>;
+  loading: boolean;
 };
 
 const DataSource = new ListView.DataSource({
@@ -110,6 +115,7 @@ class App extends Component<*, Props, State> {
 
     this.state = {
       // lessons: [],
+      loading: false,
     };
     this.dataSource = DataSource.cloneWithRowsAndSections({});
 
@@ -120,30 +126,32 @@ class App extends Component<*, Props, State> {
   state: State;
 
   componentDidMount() {
-    fetchLessons({ studentGroup: ['14TIKOOT'] })
+    this.setState({ loading: true });
+    fetchLessons({ studentGroup: ['14TIKOOT'], type: 'week' })
       .then((data) => {
         const lessons: Array<Lesson> = data.reservations
           .map(reservation => parseReservation(reservation))
           .sort((a, b) => moment(a.startDate).isBefore(b.startDate));
         // this.setState({ lessons });
         this.dataSource = DataSource.cloneWithRowsAndSections(lessonsToMap(lessons));
+        this.setState({ loading: false });
       })
-      .catch(error => console.error(error));
+      .catch(error => console.error(error) || this.setState({ loading: true }));
   }
 
   renderRow(lesson: Lesson) {
     return (
       <View style={styles.row} key={lesson.id}>
         <View style={styles.rowDates}>
-          <Text>{moment(lesson.startDate).format('HH:mm')}</Text>
-          <Text>-</Text>
-          <Text>{moment(lesson.endDate).format('HH:mm')}</Text>
+          <Text style={styles.timeText}>{moment(lesson.startDate).format('HH:mm')}</Text>
+          <Text style={styles.timeTextDivider}>-</Text>
+          <Text style={styles.timeText}>{moment(lesson.endDate).format('HH:mm')}</Text>
         </View>
         <View
           style={styles.rowCenter}
         >
-          <Text>{lesson.course.name}</Text>
-          <Text>{lesson.room}</Text>
+          <Text style={styles.courseNameText}>{lesson.course.name}</Text>
+          <Text style={styles.roomNameText}>{lesson.room}</Text>
         </View>
       </View>
     );
@@ -159,56 +167,82 @@ class App extends Component<*, Props, State> {
 
   render(): React.Element<*> {
     return (
-      <Container>
-        <Header>
-          <Button transparent>
-            <Icon name="md-menu" />
-          </Button>
-          <Title>Your Lessons</Title>
-        </Header>
-        <Content>
-          <ListView
-            renderRow={this.renderRow}
-            dataSource={this.dataSource}
-            initialListSize={0}
-            pageSize={8}
-            scrollRenderAheadDistance={1000}
-            renderSeparator={() => <View style={styles.separator} />}
-            renderSectionHeader={this.renderSectionHeader}
-            style={styles.listView}
-          />
+      <View>
+        <StatusBar
+          backgroundColor="#303F9F"
+          barStyle="default"
+        />
+        <Container theme={Theme}>
 
-        </Content>
-      </Container>
+          <Header>
+            <Button transparent>
+              <Icon name="md-menu" />
+            </Button>
+            <Title>Your Lessons</Title>
+          </Header>
+          <Content>
+            <Tabs>
+              <Content tabLabel="Today">
+                <ListView
+                  renderRow={this.renderRow}
+                  dataSource={this.dataSource}
+                  initialListSize={0}
+                  pageSize={8}
+                  scrollRenderAheadDistance={1000}
+                  renderSeparator={(sID, rID) =>
+                    <View style={styles.separator} key={`${sID}-${rID}`} />
+                  }
+                  renderSectionHeader={this.renderSectionHeader}
+                  style={styles.listView}
+                />
+              </Content>
+              <Content tabLabel="Week">
+                <ListView
+                  renderRow={this.renderRow}
+                  dataSource={this.dataSource}
+                  initialListSize={0}
+                  pageSize={8}
+                  scrollRenderAheadDistance={1000}
+                  renderSeparator={(sID, rID) =>
+                    <View style={styles.separator} key={`${sID}-${rID}`} />
+                  }
+                  renderSectionHeader={this.renderSectionHeader}
+                  style={styles.listView}
+                />
+                {this.state.loading &&
+                  <Spinner />
+                }
+              </Content>
+            </Tabs>
+          </Content>
+        </Container>
+      </View>
+
     );
   }
 }
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    // borderColor: '#0f0', borderWidth: 1,
     paddingLeft: 8,
     paddingVertical: 4,
   },
   listView: {
     flex: 1,
     flexDirection: 'column',
-    // marginHorizontal: 8,
   },
   separator: {
-    // height: StyleSheet.hairlineWidth,
     height: 1,
-    backgroundColor: '#EEEEEE',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginLeft: 8,
   },
   sectionHeader: {
-    // borderColor: '#f00', borderWidth: 1,
-    backgroundColor: '#81D4FA',
+    backgroundColor: '#E0E0E0',
     paddingHorizontal: 8,
     paddingVertical: 6,
   },
   sectionHeaderText: {
-    color: '#000',
+    color: 'rgba(0, 0, 0, 0.87)',
 
   },
   rowDates: {
@@ -219,15 +253,18 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     justifyContent: 'center',
   },
-  // container: {
-  //   flex: 1,
-  //   flexDirection: 'column',
-  //   backgroundColor: '#fff',
-  // },
-  // text: {
-  //   color: '#000',
-  //   fontSize: 16,
-  // },
+  roomNameText: {
+    color: 'rgba(0, 0, 0, 0.54)',
+  },
+  courseNameText: {
+    color: 'rgba(0, 0, 0, 0.87)',
+  },
+  timeText: {
+    color: 'rgba(0, 0, 0, 0.87)',
+  },
+  timeTextDivider: {
+    color: 'rgba(0, 0, 0, 0.54)',
+  },
 });
 
 export default App;

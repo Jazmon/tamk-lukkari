@@ -11,19 +11,22 @@ function checkStatus(response) {
   error.response = response;
   throw error;
 }
+
 function parseJSON(response) {
   return response.json();
 }
-
+type TimeType = 'today' | 'week';
 const apiDateFormat = 'YYYY-MM-DDTHH:mm';
 const apiUrl = 'https://opendata.tamk.fi/r1/reservation/search';
 // eslint-disable-next-line arrow-parens, arrow-body-style
 export const fetchLessons = ({
   studentGroup,
   realization,
+  type = 'week',
 }: {
   studentGroup?: Array<string>;
-  realization?: Array<string>
+  realization?: Array<string>;
+  type: TimeType;
 }): Promise<*> =>
   new Promise((resolve, reject) => {
     fetch(apiUrl, {
@@ -36,8 +39,8 @@ export const fetchLessons = ({
       body: JSON.stringify({
         studentGroup,
         realization,
-        rangeStart: moment().startOf('week').format(apiDateFormat),
-        rangeEnd: moment().endOf('week').format(apiDateFormat),
+        rangeStart: moment().startOf(type).format(apiDateFormat),
+        rangeEnd: moment().endOf(type).format(apiDateFormat),
       }),
     })
     .then(checkStatus)
