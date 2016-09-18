@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import {
   StyleSheet,
   View,
+  Dimensions,
   ListView,
   Text,
 } from 'react-native';
@@ -104,7 +105,7 @@ export default class Week extends Component<*, Props, State> {
     const noLessons: boolean = !this.state.loading && this.dataSource.getRowCount() === 0;
     const loading: boolean = this.state.loading;
     return (
-      <Content>
+      <Content style={{ flex: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height - 56 - 44 }}>
         <ListView
           renderRow={this.renderRow}
           dataSource={this.dataSource}
@@ -120,7 +121,7 @@ export default class Week extends Component<*, Props, State> {
         />
         {noLessons &&
           <View style={styles.noLessonsContainer}>
-            <NBText>No lessons today...</NBText>
+            <NBText>No lessons this week...</NBText>
           </View>
         }
         {loading && <Spinner />}
@@ -138,7 +139,6 @@ const styles = StyleSheet.create({
   },
   listView: {
     flex: 1,
-    borderColor: '#f00', borderWidth: 1,
     flexDirection: 'column',
   },
   separator: {

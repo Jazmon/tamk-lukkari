@@ -4,6 +4,7 @@ import {
   StyleSheet,
   View,
   ListView,
+  Dimensions,
   Text,
 } from 'react-native';
 import {
@@ -98,7 +99,7 @@ export default class Today extends Component<*, Props, State> {
     const noLessons: boolean = !this.state.loading && this.todayDataSource.getRowCount() === 0;
     const loading: boolean = this.state.loading;
     return (
-      <Content>
+      <Content style={{ flex: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height - 56 - 44 }}>
         <ListView
           renderRow={this.renderRow}
           dataSource={this.todayDataSource}
