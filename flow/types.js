@@ -1,4 +1,4 @@
-
+/* eslint-disable no-undef */
 declare type Resource = {
   id: number;
   type: 'realization' | 'student_group' | 'scheduling_group' | 'room' | 'building';
@@ -29,3 +29,5 @@ declare type Lesson = {
   // teacher: string;
   room: string;
 };
+
+declare type TimeType = 'today' | 'week';

@@ -16,23 +16,24 @@ import {
 import moment from 'moment';
 import 'moment/locale/fi';
 
-import { fetchLessons } from '../api';
-import { parseReservation, lessonsToMap } from '../utils';
+import { lessonsToMap } from '../utils';
 
-const TodayDataSource = new ListView.DataSource({
+const DataSource = new ListView.DataSource({
   rowHasChanged: (r1, r2) => r1.id !== r2.id,
   sectionHeaderHasChanged: (s1, s2) => s1 !== s2,
 });
 
 
-type Props = {};
+type Props = {
+  lessons: Array<Lesson>;
+};
 type State = {
   loading: boolean;
 };
 
 export default class Today extends Component<*, Props, State> {
   props: Props;
-  todayDataSource: Object;
+  dataSource: Object;
 
   renderRow: Function;
   renderSectionHeader: Function;
@@ -42,10 +43,10 @@ export default class Today extends Component<*, Props, State> {
 
     this.state = {
       // lessons: [],
-      loading: true,
+      loading: false,
     };
 
-    this.todayDataSource = TodayDataSource.cloneWithRowsAndSections({});
+    this.dataSource = DataSource.cloneWithRowsAndSections({});
 
     this.renderRow = this.renderRow.bind(this);
     this.renderSectionHeader = this.renderSectionHeader.bind(this);
@@ -54,19 +55,7 @@ export default class Today extends Component<*, Props, State> {
   state: State;
 
   componentDidMount() {
-    fetchLessons({ studentGroup: ['14TIKOOT'], type: 'today' })
-      .then((data) => {
-        if (!data.reservations || data.reservations.length === 0) {
-          this.setState({ loading: false });
-          return;
-        }
-        const lessons: Array<Lesson> = data.reservations
-          .map(reservation => parseReservation(reservation))
-          .sort((a, b) => moment(a.startDate).isBefore(b.startDate));
-        this.todayDataSource = TodayDataSource.cloneWithRowsAndSections(lessonsToMap(lessons));
-        this.setState({ loading: false });
-      })
-      .catch(error => console.error(error) || this.setState({ loading: true }));
+    this.dataSource = DataSource.cloneWithRowsAndSections(lessonsToMap(this.props.lessons));
   }
 
   renderRow(lesson: Lesson) {
@@ -96,13 +85,13 @@ export default class Today extends Component<*, Props, State> {
   }
 
   render(): React.Element<*> {
-    const noLessons: boolean = !this.state.loading && this.todayDataSource.getRowCount() === 0;
+    const noLessons: boolean = !this.state.loading && this.dataSource.getRowCount() === 0;
     const loading: boolean = this.state.loading;
     return (
       <Content style={{ flex: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height - 56 - 44 }}>
         <ListView
           renderRow={this.renderRow}
-          dataSource={this.todayDataSource}
+          dataSource={this.dataSource}
           initialListSize={0}
           pageSize={8}
           scrollRenderAheadDistance={1000}

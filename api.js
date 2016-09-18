@@ -15,7 +15,6 @@ function checkStatus(response) {
 function parseJSON(response) {
   return response.json();
 }
-type TimeType = 'today' | 'week';
 const apiDateFormat = 'YYYY-MM-DDTHH:mm';
 const apiUrl = 'https://opendata.tamk.fi/r1/reservation/search';
 // eslint-disable-next-line arrow-parens, arrow-body-style
