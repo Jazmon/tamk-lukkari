@@ -6,7 +6,7 @@
     "start": "node node_modules/react-native/local-cli/cli.js start"
   },
   "author": "Atte Huhtakangas <atte.huhtakangas@gmail.com>",
-  "license": "MIT",
+  "license": "ISC",
   "homepage": "https://bitbucket.org/Jazmon/tamk-lukkari#readme",
   "repository": {
     "type": "git",
