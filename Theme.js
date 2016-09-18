@@ -195,7 +195,7 @@ export default {
 
 
   // Tabs
-  tabBgColor: '#FF3F80',
+  tabBgColor: '#5C6BC0',
   tabFontSize: 15,
   tabTextColor: '#fff',
 
