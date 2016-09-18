@@ -59,6 +59,8 @@ class App extends Component<*, Props, State> {
   onTabChange: Function;
   getPreferences: Function;
   getLessons: Function;
+  renderFab: Function;
+  renderModal: Function;
 
   constructor(props: Props) {
     super(props);
@@ -77,6 +79,8 @@ class App extends Component<*, Props, State> {
     this.onTabChange = this.onTabChange.bind(this);
     this.getPreferences = this.getPreferences.bind(this);
     this.getLessons = this.getLessons.bind(this);
+    this.renderFab = this.renderFab.bind(this);
+    this.renderModal = this.renderModal.bind(this);
   }
 
   state: State;
@@ -168,6 +172,65 @@ class App extends Component<*, Props, State> {
     }
   }
 
+  renderFab(): React.Element<*> {
+    return (
+      <ActionButton
+        buttonColor="rgba(255, 62, 128, 1)"
+        bgColor="rgba(238, 238, 238, 0.59)"
+        offsetX={16}
+        offsetY={0}
+      >
+        <ActionButton.Item
+          buttonColor="#9b59b6"
+          title="Lisää kurssi"
+          onPress={() => {}}
+        >
+          <Icon name="md-add" style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item
+          buttonColor="#1abc9c"
+          title="Vaihda ryhmää"
+          onPress={() => this.setState({ modalVisible: true })}
+        >
+          <Icon name="md-swap" style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+      </ActionButton>
+    );
+  }
+
+  renderModal(): React.Element<*> {
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={this.state.modalVisible}
+        onRequestClose={() => {}}
+      >
+        <View style={styles.modal}>
+          <View style={styles.modalInner}>
+            <Text>Ryhmä</Text>
+            <TextInput
+              placeholder="14TIKOOT"
+              text={this.state.studentGroup}
+              onChangeText={text => this.setState({ studentGroup: text })}
+            />
+            <Button
+              onPress={() => {
+                this.setState({ modalVisible: false });
+                this.getLessons('today');
+                this.getLessons('week');
+                AsyncStorage.setItem(STUDENT_GROUP_KEY, this.state.studentGroup);
+              }}
+            >
+              <Text>Vaihda</Text>
+              <Icon name="md-send" />
+            </Button>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
   render(): React.Element<*> {
     const fabVisible: boolean = this.state.fabVisible;
     return (
@@ -191,57 +254,8 @@ class App extends Component<*, Props, State> {
             </Tabs>
           </View>
         </Container>
-        {fabVisible &&
-          <ActionButton
-            buttonColor="rgba(255, 62, 128, 1)"
-            bgColor="rgba(238, 238, 238, 0.59)"
-            offsetX={16}
-            offsetY={0}
-          >
-            <ActionButton.Item
-              buttonColor="#9b59b6"
-              title="Lisää kurssi"
-              onPress={() => {}}
-            >
-              <Icon name="md-add" style={styles.actionButtonIcon} />
-            </ActionButton.Item>
-            <ActionButton.Item
-              buttonColor="#1abc9c"
-              title="Vaihda ryhmää"
-              onPress={() => this.setState({ modalVisible: true })}
-            >
-              <Icon name="md-swap" style={styles.actionButtonIcon} />
-            </ActionButton.Item>
-          </ActionButton>
-        }
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={this.state.modalVisible}
-          onRequestClose={() => {}}
-        >
-          <View style={styles.modal}>
-            <View style={styles.modalInner}>
-              <Text>Ryhmä</Text>
-              <TextInput
-                placeholder="14TIKOOT"
-                text={this.state.studentGroup}
-                onChangeText={text => this.setState({ studentGroup: text })}
-              />
-              <Button
-                onPress={() => {
-                  this.setState({ modalVisible: false });
-                  this.getLessons('today');
-                  this.getLessons('week');
-                  AsyncStorage.setItem(STUDENT_GROUP_KEY, this.state.studentGroup);
-                }}
-              >
-                <Text>Vaihda</Text>
-                <Icon name="md-send" />
-              </Button>
-            </View>
-          </View>
-        </Modal>
+        {fabVisible && this.renderFab()}
+        {this.renderModal()}
       </View>
     );
   }
