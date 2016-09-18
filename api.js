@@ -26,11 +26,16 @@ export const fetchLessons = ({
   type = 'week',
 }: {
   studentGroup?: Array<string>;
-  realization?: Array<string>;
+  realization?: string;
   type: TimeType;
 }): Promise<*> =>
   new Promise((resolve, reject) => {
-    console.log('type', type);
+    console.log('request body', JSON.stringify({
+      studentGroup,
+      realization,
+      rangeStart: moment().startOf(type).format(apiDateFormat),
+      rangeEnd: moment().endOf(type).format(apiDateFormat),
+    }));
     fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -40,7 +45,7 @@ export const fetchLessons = ({
       },
       body: JSON.stringify({
         studentGroup,
-        realization,
+        realization: realization ? [realization] : undefined,
         rangeStart: moment().startOf(type).format(apiDateFormat),
         rangeEnd: moment().endOf(type).format(apiDateFormat),
       }),

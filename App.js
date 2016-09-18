@@ -52,6 +52,8 @@ type State = {
   weekLessons: Array<Lesson>;
   todayLessons: Array<Lesson>;
   modalVisible: boolean;
+  realizationText: ?string;
+  addRealizationModalVisible: boolean;
 };
 
 class App extends Component<*, Props, State> {
@@ -59,8 +61,10 @@ class App extends Component<*, Props, State> {
   onTabChange: Function;
   getPreferences: Function;
   getLessons: Function;
+  getRealizationLessons: Function;
   renderFab: Function;
   renderModal: Function;
+  renderRealizationModal: Function;
 
   constructor(props: Props) {
     super(props);
@@ -74,13 +78,17 @@ class App extends Component<*, Props, State> {
       studentGroup: null,
       realizations: null,
       modalVisible: false,
+      realizationText: null,
+      addRealizationModalVisible: false,
     };
 
     this.onTabChange = this.onTabChange.bind(this);
     this.getPreferences = this.getPreferences.bind(this);
     this.getLessons = this.getLessons.bind(this);
+    this.getRealizationLessons = this.getRealizationLessons.bind(this);
     this.renderFab = this.renderFab.bind(this);
     this.renderModal = this.renderModal.bind(this);
+    this.renderRealizationModal = this.renderRealizationModal.bind(this);
   }
 
   state: State;
@@ -121,6 +129,38 @@ class App extends Component<*, Props, State> {
   };
 
   // eslint-disable-next-line sort-class-members/sort-class-members, arrow-parens
+  getRealizationLessons = async(realization: string) => {
+    this.setState({ loading: true });
+    if (!this.state.studentGroup) {
+      return;
+    }
+    try {
+      const data = await fetchLessons({ realization, type: 'week' });
+      if (!data.reservations || data.reservations.length === 0) {
+        this.setState({ loading: false });
+        return;
+      }
+      // get all lessons
+      const lessons: Array<Lesson> = data.reservations
+        .map(reservation => parseReservation(reservation))
+        .sort((a, b) => moment(a.startDate).isBefore(b.startDate));
+
+      const weekLessons: Array<Lesson> = [...lessons, ...this.state.weekLessons]
+        .sort((a, b) => moment(a.startDate).isBefore(b.startDate));
+      const todayLessons: Array<Lesson> = weekLessons
+        .filter(lesson => moment(lesson.startDate).isSame(new Date(), 'day'));
+
+      this.setState({
+        weekLessons,
+        todayLessons,
+      });
+      this.setState({ loading: false });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // eslint-disable-next-line sort-class-members/sort-class-members, arrow-parens
   getPreferences = async() => {
     try {
       const keys: Array<string> = [STUDENT_GROUP_KEY, REALIZATIONS_KEY];
@@ -139,7 +179,7 @@ class App extends Component<*, Props, State> {
         } else if (key === REALIZATIONS_KEY) {
           if (value !== null) {
             this.setState({
-              realizations: value,
+              realizations: JSON.parse(value),
             });
             gotData = true;
           }
@@ -150,6 +190,11 @@ class App extends Component<*, Props, State> {
       if (gotData) {
         this.getLessons('week');
         this.getLessons('today');
+        if (this.state.realizations) {
+          this.state.realizations.forEach((realization) => {
+            this.getRealizationLessons(realization);
+          });
+        }
       } else {
         this.setState({
           modalVisible: true,
@@ -183,7 +228,7 @@ class App extends Component<*, Props, State> {
         <ActionButton.Item
           buttonColor="#9b59b6"
           title="Lisää kurssi"
-          onPress={() => {}}
+          onPress={() => this.setState({ addRealizationModalVisible: true })}
         >
           <Icon name="md-add" style={styles.actionButtonIcon} />
         </ActionButton.Item>
@@ -231,6 +276,49 @@ class App extends Component<*, Props, State> {
     );
   }
 
+  renderRealizationModal(): React.Element<*> {
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={this.state.addRealizationModalVisible}
+        onRequestClose={() => {}}
+      >
+        <View style={styles.modal}>
+          <View style={styles.modalInner}>
+            <Text>Kurssin tunnus</Text>
+            <TextInput
+              placeholder="4-AOT14-3003"
+              text={this.state.realizationText}
+              onChangeText={text => this.setState({ realizationText: text })}
+            />
+            <Button
+              onPress={() => {
+                if (!this.state.realizationText) {
+                  return;
+                }
+                const realizations = this.state.realizations
+                  ? [...this.state.realizations, this.state.realizationText]
+                  : [this.state.realizationText];
+                this.getRealizationLessons(this.state.realizationText);
+
+                this.setState({
+                  addRealizationModalVisible: false,
+                  realizationText: null,
+                  realizations,
+                });
+                AsyncStorage.setItem(REALIZATIONS_KEY, JSON.stringify(realizations));
+              }}
+            >
+              <Text>Lisää</Text>
+              <Icon name="md-add" />
+            </Button>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
   render(): React.Element<*> {
     const fabVisible: boolean = this.state.fabVisible;
     return (
@@ -256,6 +344,7 @@ class App extends Component<*, Props, State> {
         </Container>
         {fabVisible && this.renderFab()}
         {this.renderModal()}
+        {this.renderRealizationModal()}
       </View>
     );
   }
