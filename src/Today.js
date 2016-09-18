@@ -42,7 +42,6 @@ export default class Today extends Component<*, Props, State> {
     super(props);
 
     this.state = {
-      // lessons: [],
       loading: false,
     };
 

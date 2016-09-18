@@ -57,27 +57,6 @@ export default class Week extends Component<*, Props, State> {
     this.dataSource = DataSource.cloneWithRowsAndSections(lessonsToMap(this.props.lessons));
   }
 
-  // componentDidMount() {
-  //   fetchLessons({ studentGroup: ['14TIKOOT'], type: 'week' })
-  //     .then((data) => {
-  //       console.log('foo');
-  //       console.log(data);
-  //       if (!data.reservations || data.reservations.length === 0) {
-  //         console.log('bar');
-  //         this.setState({ loading: false });
-  //         return;
-  //       }
-  //       console.log('baz');
-  //       const lessons: Array<Lesson> = data.reservations
-  //         .map(reservation => parseReservation(reservation))
-  //         .sort((a, b) => moment(a.startDate).isBefore(b.startDate));
-  //       // this.setState({ lessons });
-  //       this.dataSource = DataSource.cloneWithRowsAndSections(lessonsToMap(lessons));
-  //       this.setState({ loading: false });
-  //     })
-  //     .catch(error => console.error(error) || this.setState({ loading: true }));
-  // }
-
   componentWillReceiveProps(nextProps: Props) {
     this.dataSource = DataSource.cloneWithRowsAndSections(lessonsToMap(nextProps.lessons));
   }
@@ -172,7 +151,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   rowEnd: {
-    // flex: 1,
     marginRight: 16,
     justifyContent: 'center',
   },

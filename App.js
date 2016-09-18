@@ -16,7 +16,6 @@ import {
   Title,
   Button,
   Tabs,
-  Spinner,
   Icon,
 } from 'native-base';
 
@@ -65,7 +64,6 @@ class App extends Component<*, Props, State> {
     super(props);
 
     this.state = {
-      // lessons: [],
       loading: true,
       storageChecked: false,
       fabVisible: true,
@@ -89,8 +87,10 @@ class App extends Component<*, Props, State> {
 
   // eslint-disable-next-line sort-class-members/sort-class-members, arrow-parens
   getLessons = async(type: TimeType) => {
-    console.log('getLessons');
     this.setState({ loading: true });
+    if (!this.state.studentGroup) {
+      return;
+    }
     try {
       const data = await fetchLessons({ studentGroup: [this.state.studentGroup], type });
       if (!data.reservations || data.reservations.length === 0) {
@@ -119,7 +119,6 @@ class App extends Component<*, Props, State> {
   // eslint-disable-next-line sort-class-members/sort-class-members, arrow-parens
   getPreferences = async() => {
     try {
-      console.log('getPreferences');
       const keys: Array<string> = [STUDENT_GROUP_KEY, REALIZATIONS_KEY];
       const stores = await AsyncStorage.multiGet(keys);
       let gotData = false;
@@ -171,7 +170,6 @@ class App extends Component<*, Props, State> {
 
   render(): React.Element<*> {
     const fabVisible: boolean = this.state.fabVisible;
-    // const showModal: boolean = this.state.storageChecked && !this.state.studentGroup;
     return (
       <View style={{ flex: 1 }}>
         <StatusBar
@@ -180,7 +178,7 @@ class App extends Component<*, Props, State> {
         />
         <Container theme={Theme}>
           <Header>
-            <Title>TAMK lukkari - {this.state.studentGroup}</Title>
+            <Title>TAMK lukkari{this.state.studentGroup ? ' - ' : ''}{this.state.studentGroup}</Title>
           </Header>
           <View style={{ flex: 0, flexDirection: 'column' }}>
             <Tabs
@@ -220,7 +218,7 @@ class App extends Component<*, Props, State> {
           animationType="slide"
           transparent={true}
           visible={this.state.modalVisible}
-          onRequestClose={() => console.log('modal closed')}
+          onRequestClose={() => {}}
         >
           <View style={styles.modal}>
             <View style={styles.modalInner}>
@@ -238,10 +236,9 @@ class App extends Component<*, Props, State> {
                   AsyncStorage.setItem(STUDENT_GROUP_KEY, this.state.studentGroup);
                 }}
               >
-                <Text>Change</Text>
+                <Text>Vaihda</Text>
                 <Icon name="md-send" />
               </Button>
-
             </View>
           </View>
         </Modal>
@@ -249,6 +246,7 @@ class App extends Component<*, Props, State> {
     );
   }
 }
+
 const styles = StyleSheet.create({
   actionButtonIcon: {
     fontSize: 20,
@@ -257,22 +255,16 @@ const styles = StyleSheet.create({
   },
   modal: {
     flex: 0,
-    // alignItems: 'center',
-    // justifyContent: 'center',
     position: 'absolute',
     width: 200,
     height: 200,
     elevation: 2,
     left: Dimensions.get('window').width / 2 - 100,
-    // left: 0,
     top: Dimensions.get('window').height / 2 - 100,
-    // top: 0,
   },
   modalInner: {
     backgroundColor: '#fff',
     padding: 6,
-    // padding: 32,
-    // alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
   },

@@ -26,7 +26,6 @@ declare type Lesson = {
     name: string;
   };
   studentGroups: Array<string>;
-  // teacher: string;
   room: string;
 };
 
