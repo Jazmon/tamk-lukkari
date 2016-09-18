@@ -4,29 +4,21 @@ import {
   StyleSheet,
   View,
   StatusBar,
-  ListView,
-  WebView,
-  Text,
-  Dimensions,
+  AsyncStorage,
 } from 'react-native';
 import {
   Container,
   Header,
   Title,
-  Content,
-  List,
-  ListItem,
-  Text as NBText,
   Tabs,
   Spinner,
   Icon,
-  Button,
 } from 'native-base';
-import moment from 'moment';
 import ActionButton from 'react-native-action-button';
 
 import Today from './src/Today';
 import Week from './src/Week';
+import Lunch from './src/Lunch';
 
 import Theme from './Theme';
 
@@ -38,7 +30,6 @@ type Props = {
 };
 
 type State = {
-  // lessons: Array<Lesson>;
   loading: boolean;
   fabVisible: boolean;
 };
@@ -83,58 +74,16 @@ class App extends Component<*, Props, State> {
         />
         <Container theme={Theme}>
           <Header>
-            {/* <Button transparent>
-              <Icon name="md-menu" />
-            </Button> */}
             <Title>TAMK lukkari</Title>
           </Header>
           <View style={{ flex: 0, flexDirection: 'column' }}>
             <Tabs
               onChangeTab={this.onTabChange}
-              // tabBarPosition="overlayTop"
-              // style={{ marginTop: 56 }}
-              // tabBarUnderlineStyle={{ height: 4,}}
               tabBarActiveTextColor="#000"
             >
               <Today ref={TODAY_REF} tabLabel="Tänään" />
               <Week ref={WEEK_REF} tabLabel="Viikko" />
-              <WebView
-                tabLabel="Lounaslista"
-                ref={LUNCH_REF}
-                source={{ uri: 'http://www.campusravita.fi/ruokalista' }}
-                style={{ flex: 1 }}
-                automaticallyAdjustContentInsets={true}
-                startInLoadingState={true}
-                renderLoading={() =>
-                  <View style={{ flex: 1 }}>
-                    <Spinner color="rgb(224, 36, 93)" />
-                  </View>
-                }
-                javaScriptEnabled={true}
-                injectedJavaScript={
-                  `(function hideElements() {
-                    var asides = document.getElementsByTagName('aside');
-                    Array.prototype.forEach.call(asides, function(aside) {
-                      aside.innerHTML = '';
-                    });
-                    var header = document.getElementsByClassName('container header')[0];
-                    header.innerHTML = '';
-                    header.style.padding = 0;
-                    document.getElementsByClassName('navbar-header')[0].innerHTML = '';
-                    document.getElementById('navbar').style.minHeight = 0;
-                    var css = '.main-container > .row { padding: 30px 0 40px 0; }';
-                    var head = document.head || document.getElementsByTagName('head')[0];
-                    var style = document.createElement('style');
-                    style.type = 'text/css';
-                    if (style.styleSheet) {
-                      style.styleSheet.cssText = css;
-                    } else {
-                      style.appendChild(document.createTextNode(css));
-                    }
-                    head.appendChild(style);
-                  }());`
-                }
-              />
+              <Lunch ref={LUNCH_REF} tabLabel="Lounaslista" />
             </Tabs>
           </View>
         </Container>
@@ -144,7 +93,6 @@ class App extends Component<*, Props, State> {
             bgColor="rgba(238, 238, 238, 0.59)"
             offsetX={16}
             offsetY={0}
-            style={styles.fab}
           >
             <ActionButton.Item
               buttonColor="#9b59b6"
@@ -167,14 +115,6 @@ class App extends Component<*, Props, State> {
   }
 }
 const styles = StyleSheet.create({
-  fab: {
-    // position: 'absolute',
-    // right: 0,
-    // bottom: 0,
-    // margin: 0,
-    // padding: 0,
-    // borderColor: '#f00', borderWidth: 1,
-  },
   actionButtonIcon: {
     fontSize: 20,
     height: 22,
