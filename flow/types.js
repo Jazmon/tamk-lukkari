@@ -29,4 +29,4 @@ declare type Lesson = {
   room: string;
 };
 
-declare type TimeType = 'today' | 'week';
+declare type TimeType = 'day' | 'week';

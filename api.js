@@ -19,6 +19,16 @@ function parseJSON(response) {
   return response.json();
 }
 
+const getRealization = (realiz?: string | Array<string>): ?Array<string> => {
+  if (!realiz) {
+    return null;
+  }
+  if (realiz instanceof Array) {
+    return realiz;
+  }
+  return [realiz];
+};
+
 // eslint-disable-next-line arrow-parens, arrow-body-style
 export const fetchLessons = ({
   studentGroup,
@@ -26,13 +36,14 @@ export const fetchLessons = ({
   type = 'week',
 }: {
   studentGroup?: Array<string>;
-  realization?: string;
+  realization?: string | Array<string>;
   type: TimeType;
 }): Promise<*> =>
   new Promise((resolve, reject) => {
+    const realization2: ?Array<string> = getRealization(realization);
     console.log('request body', JSON.stringify({
       studentGroup,
-      realization,
+      realization: realization2 || undefined,
       rangeStart: moment().startOf(type).format(apiDateFormat),
       rangeEnd: moment().endOf(type).format(apiDateFormat),
     }));
@@ -45,7 +56,7 @@ export const fetchLessons = ({
       },
       body: JSON.stringify({
         studentGroup,
-        realization: realization ? [realization] : undefined,
+        realization: realization2 || undefined,
         rangeStart: moment().startOf(type).format(apiDateFormat),
         rangeEnd: moment().endOf(type).format(apiDateFormat),
       }),
