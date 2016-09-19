@@ -1,11 +1,9 @@
 import React from 'react';
 import {
   View,
+  ActivityIndicator,
   WebView,
 } from 'react-native';
-import {
-  Spinner,
-} from 'native-base';
 
 const url = 'http://www.campusravita.fi/ruokalista';
 const injectedJavaScript =
@@ -31,20 +29,24 @@ const injectedJavaScript =
   head.appendChild(style);
 }());`;
 
-export default function Lunch() {
-  return (
-    <WebView
-      source={{ uri: url }}
-      style={{ flex: 1 }}
-      automaticallyAdjustContentInsets={true}
-      startInLoadingState={true}
-      renderLoading={() =>
-        <View style={{ flex: 1 }}>
-          <Spinner color="rgb(224, 36, 93)" />
-        </View>
-      }
-      javaScriptEnabled={true}
-      injectedJavaScript={injectedJavaScript}
-    />
-  );
+// eslint-disable-next-line react/prefer-stateless-function
+export default class Lunch extends React.Component {
+
+  render() {
+    return (
+      <WebView
+        source={{ uri: url }}
+        style={{ flex: 1 }}
+        automaticallyAdjustContentInsets={true}
+        startInLoadingState={true}
+        renderLoading={() =>
+          <View style={{ flex: 1 }}>
+            <ActivityIndicator animating={true} color="#f44336" size="large" />
+          </View>
+        }
+        javaScriptEnabled={true}
+        injectedJavaScript={injectedJavaScript}
+      />
+    );
+  }
 }

@@ -3,16 +3,12 @@ import React, { Component } from 'react';
 import {
   StyleSheet,
   View,
-  Dimensions,
+  ActivityIndicator,
   ListView,
   Text,
+  RefreshControl,
 } from 'react-native';
-import {
-  Content,
-  Text as NBText,
-  Spinner,
-} from 'native-base';
-
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import moment from 'moment';
 import 'moment/locale/fi';
 
@@ -23,20 +19,19 @@ const DataSource = new ListView.DataSource({
   sectionHeaderHasChanged: (s1, s2) => s1 !== s2,
 });
 
-
 type Props = {
   lessons: Array<Lesson>;
+  onRefresh: Function;
 };
+
 type State = {
   loading: boolean;
+  refreshing: boolean;
 };
 
 export default class Week extends Component<*, Props, State> {
   props: Props;
   dataSource: Object;
-
-  renderRow: Function;
-  renderSectionHeader: Function;
 
   constructor(props: Props) {
     super(props);
@@ -44,11 +39,9 @@ export default class Week extends Component<*, Props, State> {
     this.state = {
       // lessons: [],
       loading: false,
+      refreshing: false,
     };
     this.dataSource = DataSource.cloneWithRowsAndSections(lessonsToMap(this.props.lessons));
-
-    this.renderRow = this.renderRow.bind(this);
-    this.renderSectionHeader = this.renderSectionHeader.bind(this);
   }
 
   state: State;
@@ -61,38 +54,39 @@ export default class Week extends Component<*, Props, State> {
     this.dataSource = DataSource.cloneWithRowsAndSections(lessonsToMap(nextProps.lessons));
   }
 
-  renderRow(lesson: Lesson) {
-    return (
-      <View style={styles.row} key={lesson.id}>
-        <View style={styles.rowDates}>
-          <Text style={styles.timeText}>{moment(lesson.startDate).format('HH:mm')}</Text>
-          <Text style={styles.timeTextDivider}>-</Text>
-          <Text style={styles.timeText}>{moment(lesson.endDate).format('HH:mm')}</Text>
-        </View>
-        <View style={styles.rowCenter}>
-          <Text style={styles.courseNameText}>{lesson.course.name}</Text>
-          <Text style={styles.roomNameText}>{lesson.room}</Text>
-        </View>
-        <View style={styles.rowEnd}>
-          <Text style={styles.courseIdText}>{lesson.course.id}</Text>
-        </View>
-      </View>
-    );
+  onRefresh = (): void => {
+    this.setState({ refreshing: true });
+    if (this.props.onRefresh) this.props.onRefresh('week', () => this.setState({ refreshing: false }));
   }
 
-  renderSectionHeader(sectionData: Lesson, sectionId: string) {
-    return (
-      <View key={sectionId} style={styles.sectionHeader}>
-        <Text style={styles.sectionHeaderText}>{sectionId}</Text>
+  renderRow = (lesson: Lesson) => (
+    <View style={styles.row} key={lesson.id}>
+      <View style={styles.rowDates}>
+        <Text style={styles.timeText}>{moment(lesson.startDate).format('HH:mm')}</Text>
+        <Text style={styles.timeTextDivider}>-</Text>
+        <Text style={styles.timeText}>{moment(lesson.endDate).format('HH:mm')}</Text>
       </View>
-    );
-  }
+      <View style={styles.rowCenter}>
+        <Text style={styles.courseNameText}>{lesson.course.name}</Text>
+        <Text style={styles.roomNameText}>{lesson.room}</Text>
+      </View>
+      <View style={styles.rowEnd}>
+        <Text style={styles.courseIdText}>{lesson.course.id}</Text>
+      </View>
+    </View>
+  );
+
+  renderSectionHeader = (sectionData: Lesson, sectionId: string) => (
+    <View key={sectionId} style={styles.sectionHeader}>
+      <Text style={styles.sectionHeaderText}>{sectionId}</Text>
+    </View>
+  );
 
   render(): React.Element<*> {
     const noLessons: boolean = !this.state.loading && this.dataSource.getRowCount() === 0;
     const loading: boolean = this.state.loading;
     return (
-      <Content style={{ flex: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height - 56 - 44 }}>
+      <View style={{ flex: 1 }}>
         <ListView
           renderRow={this.renderRow}
           dataSource={this.dataSource}
@@ -105,14 +99,21 @@ export default class Week extends Component<*, Props, State> {
           renderFooter={() => <View style={{ height: 64 }} />}
           renderSectionHeader={this.renderSectionHeader}
           style={styles.listView}
+          renderScrollComponent={(props) => <KeyboardAwareScrollView {...props} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.refreshing}
+              onRefresh={this.onRefresh}
+            />
+          }
         />
         {noLessons &&
           <View style={styles.noLessonsContainer}>
-            <NBText>No lessons this week...</NBText>
+            <Text>No lessons this week...</Text>
           </View>
         }
-        {loading && <Spinner />}
-      </Content>
+        {loading && <ActivityIndicator animating={true} color="#f44336" size="large" />}
+      </View>
     );
   }
 

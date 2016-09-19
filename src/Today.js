@@ -4,14 +4,10 @@ import {
   StyleSheet,
   View,
   ListView,
-  Dimensions,
+  RefreshControl,
   Text,
+  ActivityIndicator,
 } from 'react-native';
-import {
-  Content,
-  Text as NBText,
-  Spinner,
-} from 'native-base';
 
 import moment from 'moment';
 import 'moment/locale/fi';
@@ -23,32 +19,29 @@ const DataSource = new ListView.DataSource({
   sectionHeaderHasChanged: (s1, s2) => s1 !== s2,
 });
 
-
 type Props = {
   lessons: Array<Lesson>;
+  onRefresh: Function;
 };
+
 type State = {
   loading: boolean;
+  refreshing: boolean;
 };
 
 export default class Today extends Component<*, Props, State> {
   props: Props;
   dataSource: Object;
 
-  renderRow: Function;
-  renderSectionHeader: Function;
-
   constructor(props: Props) {
     super(props);
 
     this.state = {
       loading: false,
+      refreshing: false,
     };
 
     this.dataSource = DataSource.cloneWithRowsAndSections({});
-
-    this.renderRow = this.renderRow.bind(this);
-    this.renderSectionHeader = this.renderSectionHeader.bind(this);
   }
 
   state: State;
@@ -57,37 +50,42 @@ export default class Today extends Component<*, Props, State> {
     this.dataSource = DataSource.cloneWithRowsAndSections(lessonsToMap(this.props.lessons));
   }
 
-  renderRow(lesson: Lesson) {
-    return (
-      <View style={styles.row} key={lesson.id}>
-        <View style={styles.rowDates}>
-          <Text style={styles.timeText}>{moment(lesson.startDate).format('HH:mm')}</Text>
-          <Text style={styles.timeTextDivider}>-</Text>
-          <Text style={styles.timeText}>{moment(lesson.endDate).format('HH:mm')}</Text>
-        </View>
-        <View
-          style={styles.rowCenter}
-        >
-          <Text style={styles.courseNameText}>{lesson.course.name}</Text>
-          <Text style={styles.roomNameText}>{lesson.room}</Text>
-        </View>
-      </View>
-    );
+  componentWillReceiveProps(nextProps: Props) {
+    this.dataSource = DataSource.cloneWithRowsAndSections(lessonsToMap(nextProps.lessons));
   }
 
-  renderSectionHeader(sectionData: Lesson, sectionId: string) {
-    return (
-      <View key={sectionId} style={styles.sectionHeader}>
-        <Text style={styles.sectionHeaderText}>{sectionId}</Text>
-      </View>
-    );
+  onRefresh = (): void => {
+    this.setState({ refreshing: true });
+    if (this.props.onRefresh) this.props.onRefresh('day', () => this.setState({ refreshing: false }));
   }
+
+  renderRow = (lesson: Lesson) => (
+    <View style={styles.row} key={lesson.id}>
+      <View style={styles.rowDates}>
+        <Text style={styles.timeText}>{moment(lesson.startDate).format('HH:mm')}</Text>
+        <Text style={styles.timeTextDivider}>-</Text>
+        <Text style={styles.timeText}>{moment(lesson.endDate).format('HH:mm')}</Text>
+      </View>
+      <View
+        style={styles.rowCenter}
+      >
+        <Text style={styles.courseNameText}>{lesson.course.name}</Text>
+        <Text style={styles.roomNameText}>{lesson.room}</Text>
+      </View>
+    </View>
+  );
+
+  renderSectionHeader = (sectionData: Lesson, sectionId: string) => (
+    <View key={sectionId} style={styles.sectionHeader}>
+      <Text style={styles.sectionHeaderText}>{sectionId}</Text>
+    </View>
+  );
 
   render(): React.Element<*> {
     const noLessons: boolean = !this.state.loading && this.dataSource.getRowCount() === 0;
     const loading: boolean = this.state.loading;
     return (
-      <Content style={{ flex: 0, width: Dimensions.get('window').width, height: Dimensions.get('window').height - 56 - 44 }}>
+      <View style={{ flex: 1 }}>
         <ListView
           renderRow={this.renderRow}
           dataSource={this.dataSource}
@@ -99,17 +97,22 @@ export default class Today extends Component<*, Props, State> {
           }
           renderSectionHeader={this.renderSectionHeader}
           style={styles.listView}
+          refreshControl={
+            <RefreshControl
+              refreshing={this.state.refreshing}
+              onRefresh={this.onRefresh}
+            />
+          }
         />
         {noLessons &&
           <View style={styles.noLessonsContainer}>
-            <NBText>No lessons today...</NBText>
+            <Text>No lessons today...</Text>
           </View>
         }
-        {loading && <Spinner />}
-      </Content>
+        {loading && <ActivityIndicator animating={true} color="#f44336" size="large" />}
+      </View>
     );
   }
-
 }
 
 const styles = StyleSheet.create({

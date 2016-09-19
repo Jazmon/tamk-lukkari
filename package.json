@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
-    "lint" :"./node_modules/.bin/eslint -c .eslintrc.js src"
+    "lint": "./node_modules/.bin/eslint -c .eslintrc.js src"
   },
   "author": "Atte Huhtakangas <atte.huhtakangas@gmail.com>",
   "license": "ISC",
@@ -23,10 +23,11 @@
     "color": "^0.11.3",
     "lodash": "^4.15.0",
     "moment": "^2.15.0",
-    "native-base": "^0.5.8",
     "react": "15.3.1",
     "react-native": "0.33.0",
     "react-native-action-button": "^2.0.3",
+    "react-native-keyboard-aware-scroll-view": "^0.2.0",
+    "react-native-scrollable-tab-view": "^0.6.0",
     "react-native-vector-icons": "^2.1.0"
   },
   "devDependencies": {
