@@ -106,7 +106,7 @@ export default class Today extends Component<*, Props, State> {
         />
         {noLessons &&
           <View style={styles.noLessonsContainer}>
-            <Text>No lessons today...</Text>
+            <Text>Ei tunteja tänään...</Text>
           </View>
         }
         {loading && <ActivityIndicator animating={true} color="#f44336" size="large" />}
@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
   },
   noLessonsContainer: {
     marginHorizontal: 8,
+    flex: 1,
     marginTop: 16,
     alignItems: 'center',
   },

@@ -109,7 +109,7 @@ export default class Week extends Component<*, Props, State> {
         />
         {noLessons &&
           <View style={styles.noLessonsContainer}>
-            <Text>No lessons this week...</Text>
+            <Text>Ei tunteja tällä viikolla...</Text>
           </View>
         }
         {loading && <ActivityIndicator animating={true} color="#f44336" size="large" />}
@@ -173,6 +173,7 @@ const styles = StyleSheet.create({
   },
   noLessonsContainer: {
     marginHorizontal: 8,
+    flex: 1,
     marginTop: 16,
     alignItems: 'center',
   },

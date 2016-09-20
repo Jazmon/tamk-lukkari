@@ -28,9 +28,7 @@ function Button(props: Props): React.Element<*> {
       background={TouchableNativeFeedback.Ripple(props.rippleColor)}
     >
       <View style={[styles.container, props.style, { backgroundColor: props.backgroundColor }]}>
-        <View style={styles.innerContainer}>
-          {props.children}
-        </View>
+        {props.children}
       </View>
     </TouchableNativeFeedback>
 
@@ -42,12 +40,14 @@ Button.defaultProps = defaultProps;
 const styles = StyleSheet.create({
   container: {
     flex: 0,
+    padding: 16,
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  innerContainer: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  // innerContainer: {
+  //
+  // },
 });
 
 export default Button;

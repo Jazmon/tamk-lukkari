@@ -31,10 +31,16 @@ const injectedJavaScript =
 
 // eslint-disable-next-line react/prefer-stateless-function
 export default class Lunch extends React.Component {
+  webView: Object;
+
+  reload = () => {
+    this.webView.reload();
+  }
 
   render() {
     return (
       <WebView
+        ref={(c) => this.webView = c}
         source={{ uri: url }}
         style={{ flex: 1 }}
         automaticallyAdjustContentInsets={true}

@@ -7,6 +7,7 @@ import {
   AsyncStorage,
   Dimensions,
   TextInput,
+  BackAndroid,
   Modal,
   Text,
 } from 'react-native';
@@ -38,7 +39,7 @@ import Button from './src/Button';
 
 const TODAY_REF = 'TODAY';
 const WEEK_REF = 'WEEK';
-const LUNCH_REF = 'LUNCH';
+// const LUNCH_REF = 'LUNCH';
 const DB_PREFIX = 'LUKKARI-';
 const STUDENT_GROUP_KEY = `${DB_PREFIX}STUDENT_GROUP`;
 const REALIZATIONS_KEY = `${DB_PREFIX}REALIZATIONS`;
@@ -48,7 +49,7 @@ type Props = {
 
 type State = {
   loading: boolean;
-  fabVisible: boolean;
+  showReload: boolean;
   studentGroup: ?string;
   realizations: ?Array<string>;
   storageChecked: boolean;
@@ -61,6 +62,8 @@ type State = {
 
 class App extends Component<*, Props, State> {
   props: Props;
+  backListener: Object;
+  lunch: Object;
 
   constructor(props: Props) {
     super(props);
@@ -68,7 +71,7 @@ class App extends Component<*, Props, State> {
     this.state = {
       loading: true,
       storageChecked: false,
-      fabVisible: true,
+      showReload: false,
       weekLessons: [],
       todayLessons: [],
       studentGroup: null,
@@ -82,7 +85,25 @@ class App extends Component<*, Props, State> {
   state: State;
 
   componentWillMount() {
+    this.backListener = BackAndroid.addEventListener('hardwareBackPress', () => {
+      if (this.state.modalVisible) {
+        this.setState({
+          modalVisible: false,
+        });
+        return true;
+      } else if (this.state.addRealizationModalVisible) {
+        this.setState({
+          addRealizationModalVisible: false,
+        });
+        return true;
+      }
+      return false;
+    });
     this.getPreferences();
+  }
+
+  componentWillUnmount() {
+    this.backListener.remove();
   }
 
   // eslint-disable-next-line arrow-parens
@@ -209,13 +230,16 @@ class App extends Component<*, Props, State> {
   };
 
   onTabChange = (value: Object) => {
-    if (value.ref.ref === LUNCH_REF) {
+    if (value.i === 2) {
+      // this.setState({
+      //   fabVisible: false,
+      // });
       this.setState({
-        fabVisible: false,
+        showReload: true,
       });
-    } else if (!this.state.fabVisible) {
+    } else if (this.state.showReload) {
       this.setState({
-        fabVisible: true,
+        showReload: false,
       });
     }
   };
@@ -224,29 +248,48 @@ class App extends Component<*, Props, State> {
     console.log('position', position);
   };
 
-  renderFab = () => (
-    <ActionButton
-      buttonColor="rgba(255, 62, 128, 1)"
-      bgColor="rgba(238, 238, 238, 0.59)"
-      offsetX={16}
-      offsetY={0}
-    >
-      <ActionButton.Item
-        buttonColor="#9b59b6"
-        title="Lisää kurssi"
-        onPress={() => this.setState({ addRealizationModalVisible: true })}
+  reloadWebview = () => {
+    this.lunch.reload();
+  }
+
+  renderFab = (showReload: boolean) => {
+    if (showReload) {
+      return (
+        <ActionButton
+          buttonColor="rgba(255, 62, 128, 1)"
+          // bgColor="rgba(238, 238, 238, 0.59)"
+          offsetX={16}
+          offsetY={0}
+          text="Reload"
+          onPress={this.reloadWebview}
+          icon={<Icon name="refresh" style={styles.actionButtonIcon} />}
+        />
+      );
+    }
+    return (
+      <ActionButton
+        buttonColor="rgba(255, 62, 128, 1)"
+        bgColor="rgba(238, 238, 238, 0.59)"
+        offsetX={16}
+        offsetY={0}
       >
-        <Icon name="add" style={styles.actionButtonIcon} />
-      </ActionButton.Item>
-      <ActionButton.Item
-        buttonColor="#1abc9c"
-        title="Vaihda ryhmää"
-        onPress={() => this.setState({ modalVisible: true })}
-      >
-        <Icon name="swap-horiz" style={styles.actionButtonIcon} />
-      </ActionButton.Item>
-    </ActionButton>
-  );
+        <ActionButton.Item
+          buttonColor="#9b59b6"
+          title="Lisää kurssi"
+          onPress={() => this.setState({ addRealizationModalVisible: true })}
+        >
+          <Icon name="add" style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+        <ActionButton.Item
+          buttonColor="#1abc9c"
+          title="Vaihda ryhmää"
+          onPress={() => this.setState({ modalVisible: true })}
+        >
+          <Icon name="swap-horiz" style={styles.actionButtonIcon} />
+        </ActionButton.Item>
+      </ActionButton>
+    );
+  }
 
   renderModal = () => (
     <Modal
@@ -260,8 +303,13 @@ class App extends Component<*, Props, State> {
           <Text>Ryhmä</Text>
           <TextInput
             placeholder="14TIKOOT"
+            placeholderTextColor="rgba(0, 0, 0, 0.38)"
+            autoCorrect={false}
+            underlineColorAndroid="rgba(255, 62, 128, 1)"
+            returnKeyType="done"
+            autoCapitalize="characters"
             text={this.state.studentGroup}
-            onChangeText={text => this.setState({ studentGroup: text })}
+            onChangeText={text => this.setState({ studentGroup: text.toUppercase() })}
           />
           <Button
             backgroundColor="#EEE"
@@ -294,7 +342,12 @@ class App extends Component<*, Props, State> {
           <TextInput
             placeholder="4-AOT14-3003"
             text={this.state.realizationText}
-            onChangeText={text => this.setState({ realizationText: text })}
+            autoCapitalize="characters"
+            placeholderTextColor="rgba(0, 0, 0, 0.38)"
+            autoCorrect={false}
+            underlineColorAndroid="rgba(255, 62, 128, 1)"
+            returnKeyType="done"
+            onChangeText={text => this.setState({ realizationText: text.toUppercase() })}
           />
           <Button
             backgroundColor="#EEE"
@@ -325,7 +378,7 @@ class App extends Component<*, Props, State> {
   );
 
   render(): React.Element<*> {
-    const fabVisible: boolean = this.state.fabVisible;
+    const showReload: boolean = this.state.showReload;
     return (
       <View style={styles.container}>
         <StatusBar
@@ -357,7 +410,7 @@ class App extends Component<*, Props, State> {
           />
           <View style={{ flex: 1, flexDirection: 'column' }}>
             <ScrollableTabView
-              // onChangeTab={this.onTabChange}
+              onChangeTab={this.onTabChange}
               tabBarActiveTextColor="#fff"
               tabBarBackgroundColor="#5C6BC0"
               tabBarInactiveTextColor="rgba(255, 255, 255, 0.87)"
@@ -378,9 +431,13 @@ class App extends Component<*, Props, State> {
                 lessons={this.state.weekLessons}
                 onRefresh={this.onRefresh}
               />
-              <Lunch ref={LUNCH_REF} tabLabel="Lounaslista" />
+              <Lunch
+                // eslint-disable-next-line no-return-assign
+                ref={(c) => this.lunch = c}
+                tabLabel="Lounaslista"
+              />
             </ScrollableTabView>
-            {fabVisible && this.renderFab()}
+            {this.renderFab(showReload)}
           </View>
         </View>
         {this.renderModal()}
