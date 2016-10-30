@@ -2,13 +2,17 @@
 import React from 'react';
 import {
   View,
+  Platform,
   TouchableNativeFeedback,
+  TouchableHighlight,
   StyleSheet,
 } from 'react-native';
 
 const defaultProps = {
   text: '',
 };
+
+const Touchable = Platform.OS === 'ios' ? TouchableHighlight : TouchableNativeFeedback;
 
 type Props = {
   style?: ?number;
@@ -21,16 +25,16 @@ type Props = {
 
 function Button(props: Props): React.Element<*> {
   return (
-    <TouchableNativeFeedback
+    <Touchable
       onPress={props.onPress}
       onLongPress={props.onLongPress}
       // eslint-disable-next-line new-cap
-      background={TouchableNativeFeedback.Ripple(props.rippleColor)}
+      background={Platform.OS === 'android' ? TouchableNativeFeedback.Ripple(props.rippleColor) : undefined}
     >
       <View style={[styles.container, props.style, { backgroundColor: props.backgroundColor }]}>
         {props.children}
       </View>
-    </TouchableNativeFeedback>
+    </Touchable>
 
   );
 }

@@ -309,7 +309,7 @@ class App extends Component<*, Props, State> {
             returnKeyType="done"
             autoCapitalize="characters"
             text={this.state.studentGroup}
-            onChangeText={text => this.setState({ studentGroup: text.toUppercase() })}
+            onChangeText={text => this.setState({ studentGroup: text.toUpperCase() })}
           />
           <Button
             backgroundColor="#EEE"
@@ -347,7 +347,7 @@ class App extends Component<*, Props, State> {
             autoCorrect={false}
             underlineColorAndroid="rgba(255, 62, 128, 1)"
             returnKeyType="done"
-            onChangeText={text => this.setState({ realizationText: text.toUppercase() })}
+            onChangeText={text => this.setState({ realizationText: text.toUpperCase() })}
           />
           <Button
             backgroundColor="#EEE"
@@ -459,6 +459,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#3F51B5',
   },
   tabsContainer: {
+
   },
   tabUnderline: {
     backgroundColor: 'rgba(255, 62, 128, 1)',
